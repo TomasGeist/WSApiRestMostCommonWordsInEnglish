@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WSmostCommonWordsInEnglishNuevo.Models;
+using WSmostCommonWordsInEnglishNuevo.Tools;
+using System.Collections.Generic;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +17,11 @@ builder.Services.AddDbContext<DbMostcommonwordsinenglishContext>(options =>
 });
 
 
+
+
 var app = builder.Build();
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

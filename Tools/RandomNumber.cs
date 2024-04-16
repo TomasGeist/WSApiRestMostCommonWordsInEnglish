@@ -1,14 +1,13 @@
 ﻿using WSmostCommonWordsInEnglishNuevo.Models;
-
+using System.Collections.Generic;
 namespace WSmostCommonWordsInEnglishNuevo.Tools
 {
-    public class RandomNumber
+    public class RandomNumber<T>
     {
-        public int NumeroRandom(List<Word> lst )
+        public int GenerarNumeroEnteroAleatorio(List<T> lst)
         {
             Random random = new Random();
             int aleatorio = random.Next(lst.Count);
-
             return aleatorio;
         }
     }

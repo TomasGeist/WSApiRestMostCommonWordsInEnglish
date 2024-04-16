@@ -27,8 +27,6 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
 
             try
             {
-
-                using (_db)
                 {
 
                     lst = _db.Words.ToList();
@@ -36,7 +34,6 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
                     respuesta.Codigo = 1;
                     respuesta.Data = lst;
                 }
-
             }
             catch (Exception ex)
             {
@@ -55,8 +52,8 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
 
             try
             {
-                using (_db)
-                {
+                
+                
                     if (id > 0)
                     {
                         var filtro = _db.Words.Where(w => w.IdWord == id).FirstOrDefault();
@@ -76,7 +73,7 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
                         respuesta.Codigo = 204;
                         respuesta.Mensaje = "El numero debe ser mayor a 0";
                     }
-                }
+                
 
             }
             catch (Exception ex)
@@ -96,20 +93,20 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
 
             try
             {
-                using (_db)
-                {
+               
+                
                     if (cant > 0)
                     {
                         var lst = new List<Word>();
                         var lstFiltrado = new List<Word>();
-                        var oRandom = new RandomNumber();
+                        var oRandom = new RandomNumber<Word>();
                         lst = _db.Words.ToList();
 
 
 
                         for (int i = 0; i < cant; i++)
                         {
-                            var numeroSeleccionado = oRandom.NumeroRandom(lst);
+                            var numeroSeleccionado = oRandom.GenerarNumeroEnteroAleatorio(lst);
                             lstFiltrado.Add(lst[numeroSeleccionado]);
                             lst.RemoveAt(numeroSeleccionado);
                         }
@@ -131,7 +128,7 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
                         respuesta.Codigo = 400;
                         respuesta.Mensaje = "El numero debe ser mayor a 0";
                     }
-                }
+                
 
             }
             catch (Exception ex)
@@ -157,7 +154,7 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
 
             try
             {
-                using (_db)
+               
                 {
                     if (inicio <= fin)
                     {
