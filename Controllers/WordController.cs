@@ -2,6 +2,8 @@
 using WSmostCommonWordsInEnglishNuevo.Response;
 using WSmostCommonWordsInEnglishNuevo.Tools;
 using WSmostCommonWordsInEnglishNuevo.Models;
+using Microsoft.Extensions.Caching.Memory;
+using System.Collections.Generic;
 
 namespace WSmostCommonWordsInEnglishNuevo.Controllers
 {
@@ -10,11 +12,14 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
     public class WordController : ControllerBase
     {
 
-        private DbMostcommonwordsinenglishContext _db;
+        private readonly DbMostcommonwordsinenglishContext _db;
 
-        public WordController(DbMostcommonwordsinenglishContext db)
+        private readonly IMemoryCache _cache;
+
+        public WordController(DbMostcommonwordsinenglishContext db, IMemoryCache cache)
         {
             _db = db;
+            _cache = cache;
         }
 
 
@@ -25,20 +30,31 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
             Respuesta respuesta = new Respuesta();
             var lst = new List<Word>();
 
-            try
+            if (_cache.TryGetValue("keyCacheTest", out List<Word> lstCached))
             {
+                respuesta.Data = lstCached;
+                return Ok(respuesta);
+            }
+            else
+            {
+                try
                 {
-
-                    lst = _db.Words.ToList();
-                    respuesta.Mensaje = "Todo ok";
-                    respuesta.Codigo = 1;
-                    respuesta.Data = lst;
+                    {
+                        lst = _db.Words.ToList();
+                        _cache.Set("keyCacheTest", lst, TimeSpan.FromMinutes(180));
+                        respuesta.Mensaje = "Todo ok";
+                        respuesta.Codigo = 1;
+                        respuesta.Data = lst;   
+                    }
+                }
+                catch (Exception ex)
+                {
+                    respuesta.Mensaje = ex.Message;
                 }
             }
-            catch (Exception ex)
-            {
-                respuesta.Mensaje = ex.Message;
-            }
+
+
+            
 
             return Ok(respuesta);
         }
@@ -90,30 +106,48 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
         {
             Respuesta respuesta = new Respuesta();
 
+            
+
 
             try
             {
-               
-                
-                    if (cant > 0)
+
+
+                if (cant > 0)
+                {
+                    var lstFiltrado = new List<Word>();
+                    var oRandom = new RandomNumber<Word>();
+
+
+
+                    if (_cache.TryGetValue("keyCacheTest", out List<Word> lstCached))
+                    {
+                        
+
+                        for (int i = 0; i < cant; i++)
+                        {
+                            var numeroSeleccionado = oRandom.GenerarNumeroEnteroAleatorio(lstCached);
+                            lstFiltrado.Add(lstCached[numeroSeleccionado]);
+                            lstCached.RemoveAt(numeroSeleccionado);
+                        }
+
+                        respuesta.Data = lstFiltrado;
+                    }
+                    else
                     {
                         var lst = new List<Word>();
-                        var lstFiltrado = new List<Word>();
-                        var oRandom = new RandomNumber<Word>();
                         lst = _db.Words.ToList();
-
-
-
                         for (int i = 0; i < cant; i++)
                         {
                             var numeroSeleccionado = oRandom.GenerarNumeroEnteroAleatorio(lst);
                             lstFiltrado.Add(lst[numeroSeleccionado]);
                             lst.RemoveAt(numeroSeleccionado);
                         }
-
-                        respuesta.Mensaje = "Todo ok";
-                        respuesta.Codigo = 1;
                         respuesta.Data = lstFiltrado;
+                    }
+
+                    respuesta.Mensaje = "Todo ok";
+                    respuesta.Codigo = 1;
 
 
                         if (respuesta.Data == null)
@@ -128,8 +162,8 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
                         respuesta.Codigo = 400;
                         respuesta.Mensaje = "El numero debe ser mayor a 0";
                     }
-                
 
+                
             }
             catch (Exception ex)
             {
@@ -175,7 +209,15 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
                                 }
                                 else { }
 
-                                lst = _db.Words.Where(w => w.IdWord >= inicio && w.IdWord <= fin).ToList();
+                                if (_cache.TryGetValue("keyCacheTest", out List<Word> lstCached))
+                                {
+                                    lst = lstCached.Where(w => w.IdWord >= inicio && w.IdWord <= fin).ToList();
+                                }
+                                else
+                                {
+                                    lst = _db.Words.Where(w => w.IdWord >= inicio && w.IdWord <= fin).ToList();
+                                }
+
                                 oRespuesta.Codigo = 200;
                                 oRespuesta.Mensaje = "Todo Ok";
                                 oRespuesta.Data = lst;
@@ -211,8 +253,6 @@ namespace WSmostCommonWordsInEnglishNuevo.Controllers
             {
                 oRespuesta.Mensaje = ex.Message;
             }
-
-
             return Ok(oRespuesta);
         }
 
